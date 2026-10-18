@@ -1,0 +1,11 @@
+@page "/auditoria"
+@attribute [Authorize]
+@inherits WorkspacePage
+<PageTitle>Trazabilidad · Credia</PageTitle>
+<div class="page-heading"><div><div class="eyebrow">CLARIDAD EN CADA PASO</div><h1>Nada se pierde en el camino<span class="heading-dot">.</span></h1><p>Un registro de las acciones, las personas y las razones detrás de cada cambio.</p></div><span class="subtle-pill"><Icon Name="shield" Size="16" /> Historial de solo lectura</span></div>
+<Feedback Error="Error" /><section class="panel"><div class="filter-bar"><label class="search-field"><Icon Name="search" /><input aria-label="Buscar eventos" placeholder="Buscar por acción, responsable o detalle…" @bind="search" @bind:event="oninput" /></label><span class="muted">@Filtered.Count() eventos</span></div><div class="table-scroll"><table><thead><tr><th>Fecha / hora (Colombia)</th><th>Acción</th><th>Responsable</th><th>Detalle</th><th></th></tr></thead><tbody>@foreach (var item in Filtered) {
+    <tr><td class="nowrap muted">@Ui.Colombia(item.CreatedAt).ToString("dd MMM yyyy · HH:mm", Ui.Culture)</td><td><strong>@item.Action</strong></td><td>@item.Actor</td><td class="audit-detail">@item.Detail</td><td><a href="/solicitudes/@item.ApplicationId" class="row-arrow" aria-label="Abrir expediente"><Icon Name="arrow" Size="17" /></a></td></tr>
+}@if (!Loading && !Filtered.Any()) {
+    <tr><td colspan="5"><div class="empty compact">No hay eventos para esta búsqueda.</div></td></tr>
+}</tbody></table></div><div class="panel-bottom">Hasta 300 eventos recientes · El alcance depende de tu rol.</div></section>
+@code { IReadOnlyList<AuditEntry> entries = []; string search = ""; IEnumerable<AuditEntry> Filtered => entries.Where(x => $"{x.Action} {x.Actor} {x.Detail}".Contains(search, StringComparison.OrdinalIgnoreCase)); protected override async Task LoadAsync() => entries = await Workspace.AuditAsync(CurrentActor); }

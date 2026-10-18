@@ -1,0 +1,29 @@
+@page "/solicitudes"
+@page "/analisis"
+@attribute [Authorize]
+@inherits WorkspacePage
+<PageTitle>@(Review ? "Bandeja de análisis" : "Solicitudes") · Credia</PageTitle>
+<div class="page-heading"><div><div class="eyebrow">@((Review ? "DECISIONES CON RESPALDO" : "GESTIÓN COMERCIAL"))</div><h1>@(Review ? "Bandeja de análisis" : "Tus solicitudes")<span class="heading-dot">.</span></h1><p>@(Review ? "Revisa la evidencia. Aplica la política. Decide con confianza." : "Un espacio para acompañar cada oportunidad, de principio a fin.")</p></div><div class="heading-actions"><a class="btn secondary" href="/api/v1/export" download><Icon Name="download" Size="17" /> Exportar</a>@if (Roles.CanWrite(CurrentActor.Role)) {
+    <a class="btn primary" href="/solicitudes/nueva"><Icon Name="plus" Size="18" /> Nueva solicitud</a>
+}</div></div>
+<Feedback Error="Error" />
+<section class="panel"><div class="filter-bar"><label class="search-field"><Icon Name="search" Size="18" /><input aria-label="Buscar solicitudes" placeholder="Buscar por nombre, identificación o referencia…" @bind="search" @bind:event="oninput" @bind:after="ResetPage" /></label><select aria-label="Filtrar por estado" @bind="status" @bind:after="ResetPage"><option value="">Todos los estados</option>@foreach (var s in Enum.GetValues<ApplicationStatus>()) {
+    @:<option value="@s">@Ui.Status(s)</option>
+}</select><select aria-label="Filtrar por producto" @bind="product" @bind:after="ResetPage"><option value="">Todos los productos</option><option>Libre inversión</option><option>Capital de trabajo</option><option>Compra de cartera</option></select></div>
+<div class="table-caption"><span><strong>@Filtered.Count()</strong> solicitudes encontradas</span><span>Más recientes primero</span></div>
+@if (Loading) {
+    <div class="loading">Cargando solicitudes…</div>
+} else {
+    <div><ApplicationTable Items="Filtered.Skip((page - 1) * 8).Take(8)" /></div>
+}
+<div class="panel-bottom"><span>Página @(page) de @Pages</span><div class="pagination"><button class="btn secondary small-btn" disabled="@(page <= 1)" @onclick="() => page--">Anterior</button><button class="btn secondary small-btn" disabled="@(page >= Pages)" @onclick="() => page++">Siguiente</button></div></div></section>
+@code {
+    [SupplyParameterFromQuery(Name="estado")] public string? StateQuery { get; set; }
+    IReadOnlyList<CreditApplication> apps = []; string search = "", status = "", product = ""; int page = 1;
+    bool Review => Navigation.Uri.Contains("/analisis");
+    protected override async Task LoadAsync() { apps = await Workspace.ListAsync(CurrentActor); status = StateQuery ?? ""; }
+    IEnumerable<CreditApplication> Filtered => apps.Where(a => (!Review || a.Status is ApplicationStatus.Submitted or ApplicationStatus.InReview) &&
+        (status == "" || a.Status.ToString() == status) && (product == "" || a.Product == product) &&
+        (a.BorrowerName.Contains(search, StringComparison.OrdinalIgnoreCase) || a.Reference.Contains(search, StringComparison.OrdinalIgnoreCase) || a.DocumentNumber.Contains(search)));
+    int Pages => Math.Max(1, (int)Math.Ceiling(Filtered.Count() / 8d)); void ResetPage() => page = 1;
+}

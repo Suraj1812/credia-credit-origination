@@ -1,0 +1,9 @@
+<div class="table-scroll"><table class="application-table"><thead><tr><th>Solicitante</th><th>Producto / referencia</th><th>Monto solicitado</th><th>Estado</th><th>Actualización</th><th><span class="sr-only">Abrir</span></th></tr></thead><tbody>
+@foreach (var app in Items) {
+    <tr><td><a class="person-cell" href="/solicitudes/@app.Id"><span class="avatar tone-@(Math.Abs(app.BorrowerName[0]) % 4)">@Ui.Initials(app.BorrowerName)</span><span><strong>@app.BorrowerName</strong><small>@app.City · CC ••••@app.DocumentNumber[^4..]</small></span></a></td><td><strong class="table-product">@app.Product</strong><small>@app.Reference</small></td><td><strong>@Ui.Money(app.Amount)</strong><small>@app.TermMonths meses</small></td><td><StatusBadge Status="app.Status" /></td><td class="muted">@Ui.Colombia(app.UpdatedAt).ToString("dd MMM yyyy", Ui.Culture)</td><td><a class="row-arrow" href="/solicitudes/@app.Id" aria-label="@($"Abrir solicitud de {app.BorrowerName}")"><Icon Name="arrow" Size="18" /></a></td></tr>
+}
+@if (!Items.Any()) {
+    <tr><td colspan="6"><div class="empty compact"><Icon Name="search" Size="30" /><h3>No encontramos solicitudes</h3><p>Prueba otro filtro o crea una nueva solicitud.</p></div></td></tr>
+}
+</tbody></table></div>
+@code { [Parameter] public IEnumerable<CreditApplication> Items { get; set; } = []; }

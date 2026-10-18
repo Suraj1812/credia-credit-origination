@@ -1,0 +1,14 @@
+@page "/documentos"
+@attribute [Authorize]
+@inherits WorkspacePage
+<PageTitle>Centro documental · Credia</PageTitle>
+<div class="page-heading"><div><div class="eyebrow">INFORMACIÓN QUE SE CONVIERTE EN EVIDENCIA</div><h1>Centro documental<span class="heading-dot">.</span></h1><p>Un documento no es solo un archivo. Es el respaldo de una decisión.</p></div><span class="subtle-pill"><Icon Name="spark" Size="16" /> Extracción asistida</span></div>
+<Feedback Error="Error" />
+<div class="document-process"><div><span>01</span><h3>Adjunta el soporte</h3><p>PDF, imagen o texto. Hasta 5 MB.</p></div><Icon Name="arrow" /><div><span>02</span><h3>Revisa la extracción</h3><p>Campos propuestos, con su origen.</p></div><Icon Name="arrow" /><div><span>03</span><h3>Confirma y evalúa</h3><p>Una persona valida antes de usar el dato.</p></div></div>
+<section class="panel"><div class="panel-heading"><div><h2>Expedientes y soportes</h2><p>Abre una solicitud para adjuntar o confirmar documentos.</p></div><a href="/sample-income.txt" download class="btn secondary"><Icon Name="download" Size="16" /> Soporte de ejemplo</a></div>@if (Loading) {
+    <div class="loading">Cargando expedientes…</div>
+} else {
+    <div><ApplicationTable Items="apps" /></div>
+}</section>
+<div class="alert neutral"><Icon Name="info" /> El lector TXT funciona localmente. Imágenes y PDF utilizan Azure Document Intelligence cuando está configurado; no se generan resultados ficticios.</div>
+@code { IReadOnlyList<CreditApplication> apps = []; protected override async Task LoadAsync() => apps = await Workspace.ListAsync(CurrentActor); }

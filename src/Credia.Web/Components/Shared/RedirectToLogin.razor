@@ -1,0 +1,3 @@
+@inject NavigationManager Navigation
+<p class="loading">Iniciando sesión… <a href="/login">Continuar</a></p>
+@code { protected override void OnAfterRender(bool firstRender) { if (firstRender) Navigation.NavigateTo("/login", true); } }

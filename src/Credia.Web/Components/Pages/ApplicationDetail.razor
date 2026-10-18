@@ -1,0 +1,129 @@
+@page "/solicitudes/{Id:guid}"
+@attribute [Authorize]
+@inherits WorkspacePage
+<PageTitle>@(application?.Reference ?? "Solicitud") · Credia</PageTitle>
+<a class="back-link" href="/solicitudes">← Volver a solicitudes</a>
+<Feedback Error="Error" Notice="Notice" />
+@if (Loading)
+{
+    <div class="loading">Cargando expediente…</div>
+}
+<div class="application-content" style="display:@(Loading || Error is not null ? "none" : "block")">
+    <div class="page-heading detail-heading">
+        <div><div class="eyebrow">@application?.Reference · EXPEDIENTE DE CRÉDITO</div><h1>@application?.BorrowerName</h1><p>@application?.Product · @application?.City · @Ui.Colombia(application!.CreatedAt).ToString("dd MMM yyyy", Ui.Culture)</p></div>
+        <StatusBadge Status="application!.Status" />
+    </div>
+    <div class="detail-grid">
+        <div>
+            <section class="panel detail-section">
+                <div class="panel-heading"><h2>Información del solicitante</h2><Icon Name="users" /></div>
+                <div class="data-grid">
+                    <div><small>Nombre completo</small><strong>@application.BorrowerName</strong></div><div><small>Cédula</small><strong>@application.DocumentNumber</strong></div>
+                    <div><small>Correo electrónico</small><strong>@application.Email</strong></div><div><small>Celular</small><strong>@application.Phone</strong></div>
+                    <div><small>Actividad económica</small><strong>@application.Employment</strong></div><div><small>Autorización de datos</small><strong>✓ Registrada</strong></div>
+                </div>
+            </section>
+            <section class="panel detail-section">
+                <div class="panel-heading"><h2>Capacidad financiera</h2><span class="subtle-pill">Declarada / confirmada</span></div>
+                <div class="financial-grid"><div><small>Ingreso mensual</small><strong>@Ui.Money(application.MonthlyIncome)</strong></div><div><small>Gastos mensuales</small><strong>@Ui.Money(application.MonthlyExpenses)</strong></div><div><small>Cuotas actuales</small><strong>@Ui.Money(application.ExistingDebtPayment)</strong></div></div>
+                <div class="purpose"><small>Destino del crédito</small><p>@application.Purpose</p></div>
+            </section>
+            <section class="panel detail-section">
+                <div class="panel-heading"><div><h2>Una decisión explicable</h2><p>Reglas, resultados y evidencia en el mismo lugar.</p></div><Icon Name="shield" /></div>
+                @if (Latest is { } evaluation)
+                {
+                    <div class="evaluation-header"><div class="score-ring"><strong>@evaluation.Score</strong><small>/ 900</small></div><div><span class="tag">@evaluation.PolicyVersion</span><h3>@evaluation.Recommendation</h3><p>@evaluation.Provider</p></div><div class="ratio-stat"><small>Endeudamiento</small><strong>@evaluation.DebtRatio.ToString("P1", Ui.Culture)</strong></div></div>
+                    <div class="rule-list">
+                        @foreach (var rule in JsonSerializer.Deserialize<List<RuleOutcome>>(evaluation.RulesJson) ?? [])
+                        {
+                            <div class="rule"><span class="rule-result @(rule.Passed ? "pass" : "fail")">@(rule.Passed ? "✓" : "!")</span><div><strong>@rule.Label</strong><p>@rule.Detail</p></div><span class="rule-label">@(rule.Passed ? "Cumple" : rule.HardStop ? "Bloqueante" : "Por revisar")</span></div>
+                        }
+                    </div>
+                    <div class="evidence-receipt"><Icon Name="shield" Size="16" /><div><strong>Evidencia SHA-256</strong><code>@evaluation.EvidenceHash</code><small>Evaluación @Ui.Colombia(evaluation.CreatedAt).ToString("dd/MM/yyyy HH:mm") · Política ilustrativa.</small></div></div>
+                }
+                else
+                {
+                    <div class="empty compact"><Icon Name="shield" Size="32" /><h3>Todo listo para analizar</h3><p>Envía la solicitud y ejecuta la política para conocer su elegibilidad.</p></div>
+                }
+            </section>
+            <section class="panel detail-section" id="documentos">
+                <div class="panel-heading"><div><h2>Documentos con contexto</h2><p>Extrae, revisa y confirma. Nunca se aprueba automáticamente.</p></div><Icon Name="spark" /></div>
+                @if (Writable)
+                {
+                    <div><label class="upload-zone"><Icon Name="upload" Size="25" /><strong>@(Busy ? "Procesando documento…" : "Selecciona un soporte de ingresos")</strong><span>PDF, PNG, JPG o TXT · máximo 5 MB</span><InputFile OnChange="Upload" accept=".pdf,.png,.jpg,.jpeg,.txt" disabled="@Busy" /></label><div class="demo-file-link"><a href="/sample-income.txt" download>Descargar soporte TXT de ejemplo ↗</a></div></div>
+                }
+                @foreach (var doc in application.Documents.OrderByDescending(x => x.CreatedAt))
+                {
+                    <div class="document-card">
+                        <div class="document-title"><span class="icon-tile blue"><Icon Name="file" /></span><div><strong>@doc.FileName</strong><small>@doc.ExtractionProvider</small></div><span class="badge @(doc.Status == "Confirmed" ? "approved" : "inreview")">@doc.Status</span></div>
+                        <div class="document-footer">
+                            <a href="/api/v1/applications/@Id/documents/@doc.Id" download class="text-link">Descargar original</a>
+                            @if (doc.Status == "Extracted" && Writable)
+                            {
+                                <div><button class="btn secondary small-btn" disabled="@Busy" @onclick="() => Confirm(doc.Id)">Confirmar datos e ingreso</button></div>
+                            }
+                        </div>
+                        <code class="hash-line">SHA-256 @doc.Sha256</code>
+                    </div>
+                }
+                @if (application.Documents.Count == 0)
+                {
+                    <div class="empty compact"><h3>Un expediente por completar</h3><p>Adjunta el primer soporte para comenzar la revisión documental.</p></div>
+                }
+            </section>
+            <section class="panel detail-section" id="historial">
+                <div class="panel-heading"><h2>La historia del expediente</h2><Icon Name="clock" /></div>
+                <div class="timeline">
+                    @foreach (var item in application.Audit.OrderByDescending(x => x.CreatedAt))
+                    {
+                        <div class="timeline-event"><span class="timeline-node"></span><small>@Ui.Colombia(item.CreatedAt).ToString("dd MMM yyyy · HH:mm", Ui.Culture)</small><h3>@item.Action</h3><p>@item.Detail</p><span class="timeline-actor">@item.Actor</span></div>
+                    }
+                </div>
+            </section>
+        </div>
+        <aside class="detail-aside">
+            <div class="panel credit-summary"><span class="eyebrow">CRÉDITO SOLICITADO</span><div class="summary-amount">@Ui.Money(application.Amount)</div><span class="muted">@application.Product</span><div class="estimate-row"><span>Plazo</span><strong>@application.TermMonths meses</strong></div><div class="estimate-row"><span>Cuota estimada</span><strong>@Ui.Money(CreditPolicy.CalculateInstallment(application.Amount, application.TermMonths))</strong></div><div class="estimate-row"><span>Versión del expediente</span><strong>v@application.Version</strong></div>
+                <div class="action-area">
+                    @if (application.Status == ApplicationStatus.Draft && Roles.CanWrite(CurrentActor.Role))
+                    {
+                        <div><button class="btn primary full" disabled="@Busy" @onclick="Submit">Enviar a análisis <Icon Name="arrow" Size="17" /></button></div>
+                    }
+                    @if (application.Status is ApplicationStatus.Submitted or ApplicationStatus.InReview && Roles.CanReview(CurrentActor.Role))
+                    {
+                        <div><button class="btn primary full" disabled="@Busy" @onclick="Evaluate"><Icon Name="spark" Size="18" />@(Busy ? "Evaluando…" : "Evaluar política")</button></div>
+                    }
+                    @if (application.Status == ApplicationStatus.InReview && Roles.CanReview(CurrentActor.Role))
+                    {
+                        <div><label for="reason">Justificación de la decisión</label><textarea id="reason" rows="4" @bind="reason" placeholder="Documenta tu criterio (mínimo 15 caracteres)…"></textarea><div class="decision-buttons"><button class="btn approve" disabled="@(Busy || Latest?.Recommendation != "Elegible" || Latest.ApplicationVersion != application.Version || reason.Trim().Length < 15)" @onclick="() => Decide(true)">Aprobar</button><button class="btn reject" disabled="@(Busy || Latest is null || Latest.ApplicationVersion != application.Version || reason.Trim().Length < 15)" @onclick="() => Decide(false)">Rechazar</button></div><small>La aprobación requiere evidencia vigente y doble intervención.</small></div>
+                    }
+                    @if (application.Status == ApplicationStatus.Approved && Roles.CanReview(CurrentActor.Role))
+                    {
+                        <div><button class="btn primary full" disabled="@Busy" @onclick="Signature">Preparar paquete de firma <Icon Name="arrow" Size="17" /></button></div>
+                    }
+                    @if (application.Status == ApplicationStatus.SignaturePending)
+                    {
+                        <div class="alert neutral">Paquete preparado en modo demo. La firma legal está pendiente de un proveedor real.</div>
+                    }
+                </div>
+            </div>
+            <div class="intake-tip"><Icon Name="shield" Size="24" /><h3>La evidencia permanece</h3><p>Los documentos conservan su huella digital. Las decisiones conservan su motivo y su autor.</p><a href="/politicas" class="text-link">Consultar política ↗</a></div>
+        </aside>
+    </div>
+</div>
+@code {
+    [Parameter] public Guid Id { get; set; } CreditApplication? application = new(); string reason = "";
+    Evaluation? Latest => application?.Evaluations.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+    bool Writable => Roles.CanWrite(CurrentActor.Role) && application?.Status is ApplicationStatus.Draft or ApplicationStatus.Submitted or ApplicationStatus.InReview;
+    protected override async Task LoadAsync() => application = await Workspace.GetAsync(Id, CurrentActor);
+    Task Submit() => Act(() => Workspace.SubmitAsync(Id, application!.Version, CurrentActor), "Solicitud enviada a análisis.");
+    Task Evaluate() => Act(() => Workspace.EvaluateAsync(Id, application!.Version, CurrentActor), "Evaluación completada. Revisa las reglas y sus resultados.");
+    Task Decide(bool approve) => Act(() => Workspace.DecideAsync(Id, new(application!.Version, approve, reason), CurrentActor), approve ? "Crédito aprobado. Puedes preparar el paquete de firma." : "Decisión registrada.");
+    Task Signature() => Act(() => Workspace.RequestSignatureAsync(Id, application!.Version, CurrentActor), "Paquete preparado en modo demostración.");
+    Task Confirm(Guid docId) => Act(() => Workspace.ConfirmDocumentAsync(Id, docId, application!.Version, CurrentActor), "Datos confirmados. Ejecuta la política para actualizar la evaluación.");
+    Task Act(Func<Task> action, string notice) => Run(async () => { await action(); await LoadAsync(); }, notice);
+    async Task Upload(InputFileChangeEventArgs e) => await Run(async () => {
+        var file = e.File; using var buffer = new MemoryStream(); await file.OpenReadStream(5 * 1024 * 1024).CopyToAsync(buffer);
+        await Workspace.UploadAsync(Id, application!.Version, file.Name, file.ContentType, buffer.ToArray(), CurrentActor); await LoadAsync();
+    }, "Documento conservado. Revisa los campos antes de confirmarlos.");
+    static string FieldLabel(string name) => name switch { "monthlyIncome" => "Ingreso mensual", "borrowerName" => "Nombre", "documentNumber" => "Identificación", _ => name };
+}

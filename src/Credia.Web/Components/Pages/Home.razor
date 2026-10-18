@@ -1,0 +1,39 @@
+@page "/"
+@attribute [Authorize]
+@inherits WorkspacePage
+<PageTitle>Vista general · Credia</PageTitle>
+<div class="page-heading"><div><div class="eyebrow">TU OPERACIÓN, EN UN VISTAZO</div><h1>Todo listo para avanzar<span class="heading-dot">.</span></h1><p>Hola, @CurrentActor.Name.Split(' ')[0]. Estas son las oportunidades de hoy.</p></div><div class="heading-actions"><span class="date-label"><Icon Name="clock" Size="17" />@Ui.Colombia(DateTime.UtcNow).ToString("dd MMM, yyyy", Ui.Culture)</span>@if (Roles.CanWrite(CurrentActor.Role)) {
+    <a class="btn primary" href="/solicitudes/nueva"><Icon Name="plus" Size="18" /> Nueva solicitud</a>
+}</div></div>
+<Feedback Error="Error" />
+@if (Loading) {
+    <div class="loading"><span class="spinner"></span>Cargando tu operación…</div>
+}
+<div class="metric-grid">
+    <div class="metric-card"><div class="metric-label">Solicitudes totales <span class="metric-icon violet"><Icon Name="file" /></span></div><div class="metric-value">@apps.Count <span class="metric-context">expedientes</span></div><div class="metric-foot"><span class="tiny-dot violet-bg"></span> @apps.Count(a => a.Status == ApplicationStatus.Submitted) nuevas por revisar</div><svg class="sparkline" viewBox="0 0 110 35"><path d="M1 28 15 25 27 29 40 18 55 22 69 9 84 14 108 3" /></svg></div>
+    <div class="metric-card"><div class="metric-label">Monto en gestión <span class="metric-icon blue"><Icon Name="wallet" /></span></div><div class="metric-value">@Ui.Compact(apps.Where(a => a.Status != ApplicationStatus.Rejected).Sum(a => a.Amount)) <span class="metric-context">COP</span></div><div class="metric-foot">Solicitudes activas y aprobadas</div><svg class="sparkline blue-line" viewBox="0 0 110 35"><path d="M1 29 16 23 28 26 42 20 54 11 70 14 87 8 108 3" /></svg></div>
+    <div class="metric-card"><div class="metric-label">En análisis <span class="metric-icon amber"><Icon Name="clock" /></span></div><div class="metric-value">@apps.Count(a => a.Status == ApplicationStatus.InReview) <span class="metric-context">solicitudes</span></div><div class="metric-foot"><span class="tiny-dot amber-bg"></span> Requieren una decisión</div></div>
+    <div class="metric-card"><div class="metric-label">Tasa de aprobación <span class="metric-icon mint"><Icon Name="shield" /></span></div><div class="metric-value">@ApprovalRate<span class="percent">%</span></div><div class="metric-foot">Sobre @Decided decisiones registradas</div><div class="metric-progress"><span style="width:@(ApprovalRate)%"></span></div></div>
+</div>
+<div class="overview-grid">
+<section class="panel pipeline-panel">
+    <div class="panel-heading"><div><h2>El recorrido de tus solicitudes</h2><p>De la primera conversación a la firma.</p></div><span class="subtle-pill">Pipeline comercial</span></div>
+    <div class="pipeline-bar">
+        @foreach (var state in Enum.GetValues<ApplicationStatus>().Where(x => x != ApplicationStatus.Rejected))
+        {
+            var count = apps.Count(a => a.Status == state);
+            <div class="segment @state.ToString().ToLowerInvariant()" style="flex:@(Math.Max(count, .3))" title="@($"{Ui.Status(state)}: {count}")"></div>
+        }
+    </div>
+    <div class="pipeline-legend">
+        @foreach (var state in Enum.GetValues<ApplicationStatus>().Where(x => x != ApplicationStatus.Rejected))
+        {
+            <a href="/solicitudes?estado=@state"><span class="legend-dot @state.ToString().ToLowerInvariant()"></span><span>@Ui.Status(state)<strong>@apps.Count(a => a.Status == state)</strong></span></a>
+        }
+    </div>
+    <div class="pipeline-note"><Icon Name="info" Size="15" /> Los estados se actualizan con cada acción del equipo.</div>
+</section>
+<section class="insight-card"><div class="insight-top"><span class="icon-tile glass"><Icon Name="spark" /></span><span>DOCUMENTOS INTELIGENTES</span><span class="beta-tag">OCR + revisión</span></div><h2>Del documento al dato.<br />Sin perder el control.</h2><p>Extrae información, verifica su origen y confirma antes de continuar.</p><a href="/documentos">Explorar centro documental <Icon Name="arrow" Size="17" /></a><span class="insight-orbit"></span></section></div>
+<div class="work-grid"><section class="panel recent-panel"><div class="panel-heading"><div><h2>Solicitudes recientes <span class="count-label">@apps.Count</span></h2><p>Cada expediente, un próximo paso.</p></div><a class="text-link" href="/solicitudes">Ver todas <Icon Name="arrow" Size="16" /></a></div><ApplicationTable Items="apps.Take(5)" /><div class="panel-bottom"><span>Mostrando @Math.Min(5, apps.Count) de @apps.Count solicitudes</span><span class="secure-note"><Icon Name="shield" Size="14" /> Acceso según tu rol</span></div></section>
+<section class="panel priorities"><div class="panel-heading"><h2>Tu siguiente paso</h2><span class="soft-icon"><Icon Name="check" Size="16" /></span></div><a class="priority-item" href="/analisis"><span class="priority-number amber">@apps.Count(a => a.Status == ApplicationStatus.InReview)</span><div><strong>Revisar y decidir</strong><p>Expedientes en análisis</p></div><Icon Name="arrow" Size="16" /></a><a class="priority-item" href="/solicitudes?estado=Submitted"><span class="priority-number violet">@apps.Count(a => a.Status == ApplicationStatus.Submitted)</span><div><strong>Comenzar un análisis</strong><p>Solicitudes recibidas</p></div><Icon Name="arrow" Size="16" /></a><a class="priority-item" href="/solicitudes?estado=Approved"><span class="priority-number mint">@apps.Count(a => a.Status == ApplicationStatus.Approved)</span><div><strong>Preparar para firma</strong><p>Créditos aprobados</p></div><Icon Name="arrow" Size="16" /></a><div class="trust-note"><Icon Name="shield" Size="25" /><strong>Una decisión. Toda la evidencia.</strong><p>Políticas versionadas y un historial completo en cada solicitud.</p><a href="/auditoria">Ver trazabilidad ↗</a></div></section></div>
+@code { IReadOnlyList<CreditApplication> apps = []; protected override async Task LoadAsync() => apps = await Workspace.ListAsync(CurrentActor); int Approved => apps.Count(a => a.Status is ApplicationStatus.Approved or ApplicationStatus.SignaturePending); int Decided => Approved + apps.Count(a => a.Status == ApplicationStatus.Rejected); int ApprovalRate => Decided == 0 ? 0 : (int)Math.Round(Approved * 100m / Decided); }

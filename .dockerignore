@@ -1,0 +1,7 @@
+**/bin
+**/obj
+**/credia.db*
+.git
+.github
+.tools
+.env*

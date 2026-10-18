@@ -1,0 +1,6 @@
+SOPORTE SINTÉTICO DE DEMOSTRACIÓN — SIN VALIDEZ COMERCIAL
+Nombre: María Fernanda Demo
+Documento: 1234567890
+Ingreso mensual: 6.500.000
+Empresa: Empresa Ejemplo SAS
+Este archivo contiene datos ficticios para probar la extracción y revisión humana.

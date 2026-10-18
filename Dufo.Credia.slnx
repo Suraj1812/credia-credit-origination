@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Credia.Application/Credia.Application.csproj" />
+    <Project Path="src/Credia.Domain/Credia.Domain.csproj" />
+    <Project Path="src/Credia.Infrastructure/Credia.Infrastructure.csproj" />
+    <Project Path="src/Credia.Web/Credia.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Credia.Tests/Credia.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/credia.db*
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+*.user
+*.suo
+.DS_Store
+.tools/
