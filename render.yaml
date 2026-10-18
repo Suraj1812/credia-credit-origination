@@ -1,0 +1,22 @@
+# Free public demo on Render (Docker). Synthetic data only; the SQLite file resets on every restart.
+services:
+  - type: web
+    name: credia
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: Demo__Public
+        value: "true"
+      - key: Database__Provider
+        value: Sqlite
+      - key: ConnectionStrings__Credia
+        value: Data Source=/app/credia.db
+      - key: Edge__TrustForwardedHeaders
+        value: "true"
+      - key: AllowedHosts
+        value: "*.onrender.com"

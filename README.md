@@ -31,6 +31,10 @@ The app fails closed unless `Database:Provider=SqlServer`, `ConnectionStrings:Cr
 
 SQL Server migrations are tracked in `src/Credia.Infrastructure/Migrations/SqlServer`. A local `dotnet-ef` tool manifest is included; use `dotnet tool restore` and `dotnet ef migrations script --idempotent --project src/Credia.Infrastructure --startup-project src/Credia.Web` to review the SQL ahead of rollout. The app also applies migrations on startup. The Dockerfile packages the application; an external SQL Server/Azure SQL database and configured integrations remain required for a real rollout.
 
+## Free public demo (Render)
+
+`render.yaml` deploys the Docker image to Render's free plan with `Demo__Public=true`: synthetic seeded cases, the demo accounts shown on the login page, and a SQLite file inside the container that resets on every restart or redeploy. Free instances sleep after inactivity, so the first request can take up to a minute. Never enter real applicant data in the public demo. For a real rollout use the SQL Server configuration above.
+
 ## Architecture and safeguards
 
 `CreditWorkspace` owns workflow transitions and enforces permissions and version checks. Advisors see only their cases. Reviewers cannot decide their own case. An approval requires a current evaluation and an eligible recommendation; an analyst supplies a reason. Files are limited to 5 MB with signature checks, bounded count, and no binary payload in list views. OCR proposals require human confirmation. Audit entries and outbox events are written in the same transaction as state changes.

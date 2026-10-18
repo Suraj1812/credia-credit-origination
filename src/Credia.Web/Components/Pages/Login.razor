@@ -15,4 +15,4 @@
 }
     </div></section>
 </div>
-@code { [SupplyParameterFromQuery(Name="error")] public string? Error { get; set; } bool IsDemo => Environment.IsDevelopment() && Config.GetValue<bool>("Demo:Enabled"); }
+@code { [SupplyParameterFromQuery(Name="error")] public string? Error { get; set; } bool IsDemo => Environment.IsDevelopment() ? Config.GetValue<bool>("Demo:Enabled") : Config.GetValue<bool>("Demo:Public"); }

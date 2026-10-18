@@ -12,9 +12,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-var demo = builder.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Demo:Enabled");
+// Public demo: a hosted showcase with synthetic data in a disposable SQLite file. Never for real applicants.
+var publicDemo = !builder.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Demo:Public");
+var demo = (builder.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Demo:Enabled")) || publicDemo;
 var provider = builder.Configuration["Database:Provider"] ?? "Sqlite";
-if (!builder.Environment.IsDevelopment() && provider != "SqlServer") throw new InvalidOperationException("Production requires a configured SQL Server database.");
+if (!builder.Environment.IsDevelopment() && !publicDemo && provider != "SqlServer") throw new InvalidOperationException("Production requires a configured SQL Server database.");
 builder.Services.AddDbContextFactory<CrediaDbContext>(options => {
     if (provider == "SqlServer") options.UseSqlServer(builder.Configuration.GetConnectionString("Credia") ?? throw new InvalidOperationException("Missing SQL connection string."));
     else options.UseSqlite(builder.Configuration.GetConnectionString("Credia") ?? "Data Source=credia.db");
@@ -52,7 +54,14 @@ builder.Services.AddRateLimiter(options => {
 });
 if (!builder.Environment.IsDevelopment())
     builder.Services.AddDataProtection().PersistKeysToDbContext<CrediaDbContext>().SetApplicationName("Credia");
+// Behind a trusted edge (e.g. a Cloudflare Worker fronting the container), honor the original scheme and host.
+var trustEdge = builder.Configuration.GetValue<bool>("Edge:TrustForwardedHeaders");
+if (trustEdge) builder.Services.Configure<ForwardedHeadersOptions>(o => {
+    o.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedHost;
+    o.KnownIPNetworks.Clear(); o.KnownProxies.Clear(); o.ForwardLimit = 1;
+});
 var app = builder.Build();
+if (trustEdge) app.UseForwardedHeaders();
 app.UseExceptionHandler();
 if (!app.Environment.IsDevelopment()) { app.UseHsts(); app.UseHttpsRedirection(); }
 app.Use(async (context, next) => {
@@ -69,7 +78,7 @@ app.MapCrediaEndpoints(demo);
 app.MapHealthChecks("/health");
 app.MapOpenApi().RequireAuthorization();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-if (!app.Environment.IsDevelopment()) {
+if (!app.Environment.IsDevelopment() && !publicDemo) {
     await using var scope = app.Services.CreateAsyncScope();
     var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<CrediaDbContext>>();
     await using var db = await factory.CreateDbContextAsync();
