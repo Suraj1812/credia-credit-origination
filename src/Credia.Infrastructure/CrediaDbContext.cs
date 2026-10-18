@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Credia.Domain;
 using Microsoft.EntityFrameworkCore;
 namespace Credia.Infrastructure;
-public sealed class CrediaDbContext(DbContextOptions<CrediaDbContext> options) : DbContext(options)
+public sealed class CrediaDbContext(DbContextOptions<CrediaDbContext> options) : DbContext(options), IDataProtectionKeyContext
 {
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
     public DbSet<CreditApplication> Applications => Set<CreditApplication>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<DocumentRecord> Documents => Set<DocumentRecord>();

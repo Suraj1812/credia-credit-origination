@@ -50,10 +50,8 @@ builder.Services.AddRateLimiter(options => {
     options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new() { PermitLimit = 12, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     options.AddPolicy("api", context => RateLimitPartition.GetFixedWindowLimiter(context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new() { PermitLimit = 120, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
 });
-if (!builder.Environment.IsDevelopment()) {
-    var keyPath = builder.Configuration["DataProtection:KeyPath"] ?? throw new InvalidOperationException("Configure persistent DataProtection:KeyPath.");
-    builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keyPath)).SetApplicationName("Credia");
-}
+if (!builder.Environment.IsDevelopment())
+    builder.Services.AddDataProtection().PersistKeysToDbContext<CrediaDbContext>().SetApplicationName("Credia");
 var app = builder.Build();
 app.UseExceptionHandler();
 if (!app.Environment.IsDevelopment()) { app.UseHsts(); app.UseHttpsRedirection(); }
@@ -71,6 +69,22 @@ app.MapCrediaEndpoints(demo);
 app.MapHealthChecks("/health");
 app.MapOpenApi().RequireAuthorization();
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+if (!app.Environment.IsDevelopment()) {
+    await using var scope = app.Services.CreateAsyncScope();
+    var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<CrediaDbContext>>();
+    await using var db = await factory.CreateDbContextAsync();
+    await db.Database.MigrateAsync();
+    if (!await db.Users.AnyAsync()) {
+        var email = app.Configuration["Bootstrap:AdminEmail"]?.Trim().ToLowerInvariant();
+        var password = app.Configuration["Bootstrap:AdminPassword"];
+        if (email is null || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email) || password?.Length < 16)
+            throw new InvalidOperationException("Provide Bootstrap:AdminEmail and a strong Bootstrap:AdminPassword to create the first administrator.");
+        var admin = new AppUser { Email = email, Name = "Administrador", Role = Roles.Admin };
+        admin.PasswordHash = scope.ServiceProvider.GetRequiredService<IPasswordHasher<AppUser>>().HashPassword(admin, password!);
+        db.Users.Add(admin);
+        await db.SaveChangesAsync();
+    }
+}
 if (demo) { await using var scope = app.Services.CreateAsyncScope(); var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<CrediaDbContext>>(); await using var db = await factory.CreateDbContextAsync(); await DemoSeed.InitializeAsync(db); }
 app.Run();
 public partial class Program { }
