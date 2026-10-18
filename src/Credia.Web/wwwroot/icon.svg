@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="30" fill="#6357d9"/><path d="M91 40a34 34 0 1 0 0 48" fill="none" stroke="white" stroke-width="15"/><circle cx="93" cy="65" r="8" fill="#bcb7ff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Credia</title>
+  <rect width="128" height="128" rx="27" fill="#202a3c"/>
+  <path d="M88 34C77 26 66 25 55 29 39 35 29 49 29 64s10 29 26 35c11 4 22 3 33-5" fill="none" stroke="#f6f0e7" stroke-width="12" stroke-linecap="round"/>
+  <path d="M52 63h28" fill="none" stroke="#9db6a3" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="92" cy="34" r="7" fill="#dfb684"/>
+  <circle cx="92" cy="94" r="7" fill="#dfb684"/>
+</svg>

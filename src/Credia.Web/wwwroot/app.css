@@ -25,3 +25,5 @@ a,button,.metric-card,.integration-card,.document-card,.panel{transition-propert
 .login-visual{opacity:.84}
 
 @media(max-width:740px){.scrim{display:none}.scrim.show{display:block}}
+
+.brand-logo{display:block;width:34px;height:34px;border-radius:9px;flex:none;box-shadow:0 3px 12px #0e1d3850}
