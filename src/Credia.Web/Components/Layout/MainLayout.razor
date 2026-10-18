@@ -3,36 +3,32 @@
 <AuthorizeView>
 <Authorized Context="auth">
 <div class="app-shell">
-    <aside class="sidebar @(menuOpen ? "open" : "")">
-        <a class="brand" href="/"><img class="brand-logo" src="/icon.svg" alt="" /><span>credia<span class="brand-dot">.</span></span></a>
-        <div class="workspace-switch"><span class="workspace-icon">D</span><div><strong>Dufo · Créditos</strong><small>Workspace de demostración</small></div><Icon Name="down" Size="16" /></div>
-        <div class="nav-section">PRINCIPAL</div>
-        <nav @onclick="CloseMenu">
-            <NavLink href="/" Match="NavLinkMatch.All"><Icon Name="grid" /> Vista general</NavLink>
+    <aside class="sidebar @(menuOpen ? "open" : "")" aria-label="Navegación principal">
+        <a class="brand" href="/" aria-label="Credia, inicio"><img class="brand-logo" src="/icon.svg" alt="" /><span>credia<span class="brand-dot">.</span></span></a>
+        <div class="workspace-switch"><span class="workspace-icon">D</span><div><strong>Dufo</strong><small>Originación de crédito</small></div></div>
+        <div class="nav-section">OPERACIÓN</div>
+        <nav @onclick="CloseMenu" aria-label="Operación">
+            <NavLink href="/" Match="NavLinkMatch.All"><Icon Name="grid" /> Resumen</NavLink>
             <NavLink href="/solicitudes"><Icon Name="file" /> Solicitudes</NavLink>
-            <NavLink href="/analisis"><Icon Name="shield" /> Bandeja de análisis <span class="nav-mark"></span></NavLink>
-            <NavLink href="/documentos"><Icon Name="spark" /> Centro documental</NavLink>
+            <NavLink href="/analisis"><Icon Name="shield" /> Análisis</NavLink>
+            <NavLink href="/documentos"><Icon Name="upload" /> Documentos</NavLink>
         </nav>
-        <div class="nav-section">CONTROL Y AUTOMATIZACIÓN</div>
-        <nav @onclick="CloseMenu">
-            <NavLink href="/politicas"><Icon Name="chart" /> Políticas de crédito</NavLink>
-            <NavLink href="/auditoria"><Icon Name="clock" /> Trazabilidad</NavLink>
+        <div class="nav-section">CONFIGURACIÓN</div>
+        <nav @onclick="CloseMenu" aria-label="Configuración">
+            <NavLink href="/politicas"><Icon Name="chart" /> Políticas</NavLink>
+            <NavLink href="/auditoria"><Icon Name="clock" /> Auditoría</NavLink>
             <NavLink href="/integraciones"><Icon Name="plug" /> Integraciones</NavLink>
         </nav>
-        <div class="sidebar-bottom">
-            <div class="demo-callout"><span class="live-dot"></span> Entorno de demostración<p>Datos sintéticos. Decisiones reales en su trazabilidad.</p><a href="/guia">Explorar el proyecto <span>↗</span></a></div>
-            <div class="sidebar-foot"><span class="mini-logo">DUFO</span><span>Business transformation<br />Mejores procesos. Más posibilidades.</span></div>
-        </div>
+        <div class="sidebar-bottom"><div class="sidebar-status"><span class="live-dot"></span><span>Entorno de demostración</span></div><a class="sidebar-guide" href="/guia"><Icon Name="info" Size="17" /> Guía del proyecto <Icon Name="arrow" Size="14" /></a></div>
     </aside>
     <button class="scrim @(menuOpen ? "show" : "")" aria-label="Cerrar menú" @onclick="CloseMenu"></button>
     <div class="main-shell">
         <header class="topbar">
-            <button class="icon-button mobile-menu" aria-label="Abrir menú" @onclick="() => menuOpen = !menuOpen"><Icon Name="menu" /></button>
-            <div class="breadcrumb">Workspace <span>/</span><strong>Originación de crédito</strong></div>
-            <div class="topbar-right"><div class="language-switch" role="group" aria-label="Language / Idioma"><button type="button" data-language="es" aria-label="Español">ES</button><button type="button" data-language="en" aria-label="English">EN</button></div><span class="env-pill"><span class="live-dot"></span> Demo en vivo</span><a class="help-link" href="/guia">Guía del proyecto <Icon Name="info" Size="16" /></a><span class="top-divider"></span><span class="avatar small">@Ui.Initials(auth.User.Identity?.Name ?? "Usuario")</span><div class="user-info"><strong>@auth.User.Identity?.Name</strong><small>@Ui.Role(auth.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")</small></div><form action="/auth/logout" method="post" data-enhance="false"><AntiforgeryToken /><button class="icon-button" title="Cerrar sesión" aria-label="Cerrar sesión"><Icon Name="logout" Size="17" /></button></form></div>
+            <div class="topbar-left"><button class="icon-button mobile-menu" aria-label="Abrir menú" @onclick="() => menuOpen = !menuOpen"><Icon Name="menu" /></button><div class="breadcrumb"><span>Credia</span><span class="breadcrumb-slash">/</span><strong>Portal comercial</strong></div></div>
+            <div class="topbar-right"><div class="language-switch" role="group" aria-label="Language / Idioma"><button type="button" data-language="es" aria-label="Español" translate="no"><img class="flag" src="/images/flags/es.png" alt="" /><span class="language-code">ES</span></button><button type="button" data-language="en" aria-label="English" translate="no"><img class="flag" src="/images/flags/gb.png" alt="" /><span class="language-code">EN</span></button></div><span class="top-divider"></span><span class="avatar small">@Ui.Initials(auth.User.Identity?.Name ?? "Usuario")</span><div class="user-info"><strong>@auth.User.Identity?.Name</strong><small>@Ui.Role(auth.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "")</small></div><form action="/auth/logout" method="post" data-enhance="false"><AntiforgeryToken /><button class="icon-button logout-button" title="Cerrar sesión" aria-label="Cerrar sesión"><Icon Name="logout" Size="17" /></button></form></div>
         </header>
         <main id="main-content"><ErrorBoundary><ChildContent>@Body</ChildContent><ErrorContent><div class="empty"><h1>Algo salió mal</h1><p>Recarga la página para recuperar la sesión.</p><a href="/" data-enhance-nav="false" class="btn primary">Volver al inicio</a></div></ErrorContent></ErrorBoundary></main>
-        <footer class="page-footer"><span>Credia © 2026 · Proyecto independiente de portafolio</span><span><span class="live-dot"></span> Evidencia antes de cada decisión</span></footer>
+        <footer class="page-footer"><span>Credia © 2026</span><span>Proyecto de demostración · Datos sintéticos</span></footer>
     </div>
 </div>
 </Authorized>

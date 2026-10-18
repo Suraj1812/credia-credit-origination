@@ -1,8 +1,8 @@
 @page "/politicas"
 @attribute [Authorize]
 <PageTitle>Políticas de crédito · Credia</PageTitle>
-<div class="page-heading"><div><div class="eyebrow">CRITERIOS CLAROS. RESULTADOS EXPLICABLES.</div><h1>La política detrás de la decisión<span class="heading-dot">.</span></h1><p>Reglas deterministas, versionadas y visibles para todo el equipo.</p></div><span class="badge approved">@CreditPolicy.Version</span></div>
-<div class="policy-banner"><Icon Name="shield" Size="36" /><div><h2>Una recomendación no sustituye una decisión humana.</h2><p>La política propone elegibilidad. Un analista diferente al creador revisa y justifica la decisión final.</p></div></div>
+<div class="page-heading"><div><div class="eyebrow">REGLAS DE CRÉDITO</div><h1>Políticas de crédito<span class="heading-dot">.</span></h1><p>Criterios vigentes de evaluación.</p></div><span class="badge approved">@CreditPolicy.Version</span></div>
+<div class="policy-banner"><Icon Name="shield" Size="36" /><div><h2>La decisión final requiere revisión humana.</h2><p>La política propone elegibilidad. Un analista diferente al creador revisa y justifica la decisión final.</p></div></div>
 <div class="policy-grid">@foreach (var rule in rules) {
     @:<section class="panel policy-card"><div><span class="rule-code">@rule.Code</span><span class="badge @(rule.Hard ? "inreview" : "draft")">@(rule.Hard ? "Bloqueante" : "Revisión")</span></div><h2>@rule.Name</h2><strong class="policy-threshold">@rule.Threshold</strong><p>@rule.Description</p></section>
 }</div>

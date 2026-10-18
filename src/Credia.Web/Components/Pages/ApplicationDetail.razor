@@ -29,7 +29,7 @@
                 <div class="purpose"><small>Destino del crédito</small><p>@application.Purpose</p></div>
             </section>
             <section class="panel detail-section">
-                <div class="panel-heading"><div><h2>Una decisión explicable</h2><p>Reglas, resultados y evidencia en el mismo lugar.</p></div><Icon Name="shield" /></div>
+                <div class="panel-heading"><div><h2>Evaluación de política</h2><p>Resultado y reglas aplicadas.</p></div><Icon Name="shield" /></div>
                 @if (Latest is { } evaluation)
                 {
                     <div class="evaluation-header"><div class="score-ring"><strong>@evaluation.Score</strong><small>/ 900</small></div><div><span class="tag">@evaluation.PolicyVersion</span><h3>@evaluation.Recommendation</h3><p>@evaluation.Provider</p></div><div class="ratio-stat"><small>Endeudamiento</small><strong>@evaluation.DebtRatio.ToString("P1", Ui.Culture)</strong></div></div>
@@ -47,7 +47,7 @@
                 }
             </section>
             <section class="panel detail-section" id="documentos">
-                <div class="panel-heading"><div><h2>Documentos con contexto</h2><p>Extrae, revisa y confirma. Nunca se aprueba automáticamente.</p></div><Icon Name="spark" /></div>
+                <div class="panel-heading"><div><h2>Documentos</h2><p>Soportes y datos verificados.</p></div><Icon Name="spark" /></div>
                 @if (Writable)
                 {
                     <div><label class="upload-zone"><Icon Name="upload" Size="25" /><strong>@(Busy ? "Procesando documento…" : "Selecciona un soporte de ingresos")</strong><span>PDF, PNG, JPG o TXT · máximo 5 MB</span><InputFile OnChange="Upload" accept=".pdf,.png,.jpg,.jpeg,.txt" disabled="@Busy" /></label><div class="demo-file-link"><a href="/sample-income.txt" download>Descargar soporte TXT de ejemplo ↗</a></div></div>
@@ -72,7 +72,7 @@
                 }
             </section>
             <section class="panel detail-section" id="historial">
-                <div class="panel-heading"><h2>La historia del expediente</h2><Icon Name="clock" /></div>
+                <div class="panel-heading"><h2>Historial del expediente</h2><Icon Name="clock" /></div>
                 <div class="timeline">
                     @foreach (var item in application.Audit.OrderByDescending(x => x.CreatedAt))
                     {
@@ -106,7 +106,7 @@
                     }
                 </div>
             </div>
-            <div class="intake-tip"><Icon Name="shield" Size="24" /><h3>La evidencia permanece</h3><p>Los documentos conservan su huella digital. Las decisiones conservan su motivo y su autor.</p><a href="/politicas" class="text-link">Consultar política ↗</a></div>
+            <div class="intake-tip"><Icon Name="shield" Size="24" /><h3>Evidencia del expediente</h3><p>Historial y huellas digitales verificables.</p><a href="/politicas" class="text-link">Consultar política ↗</a></div>
         </aside>
     </div>
 </div>

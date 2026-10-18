@@ -3,7 +3,7 @@
 @attribute [Authorize]
 @inherits WorkspacePage
 <PageTitle>@(Review ? "Bandeja de análisis" : "Solicitudes") · Credia</PageTitle>
-<div class="page-heading"><div><div class="eyebrow">@((Review ? "DECISIONES CON RESPALDO" : "GESTIÓN COMERCIAL"))</div><h1>@(Review ? "Bandeja de análisis" : "Tus solicitudes")<span class="heading-dot">.</span></h1><p>@(Review ? "Revisa la evidencia. Aplica la política. Decide con confianza." : "Un espacio para acompañar cada oportunidad, de principio a fin.")</p></div><div class="heading-actions"><a class="btn secondary" href="/api/v1/export" download><Icon Name="download" Size="17" /> Exportar</a>@if (Roles.CanWrite(CurrentActor.Role)) {
+<div class="page-heading"><div><div class="eyebrow">@((Review ? "REVISIÓN DE CRÉDITO" : "PORTAL COMERCIAL"))</div><h1>@(Review ? "Bandeja de análisis" : "Solicitudes")<span class="heading-dot">.</span></h1><p>@(Review ? "Expedientes pendientes de evaluación y decisión." : "Consulta y gestiona los expedientes de crédito.")</p></div><div class="heading-actions"><a class="btn secondary" href="/api/v1/export" download><Icon Name="download" Size="17" /> Exportar</a>@if (Roles.CanWrite(CurrentActor.Role)) {
     <a class="btn primary" href="/solicitudes/nueva"><Icon Name="plus" Size="18" /> Nueva solicitud</a>
 }</div></div>
 <Feedback Error="Error" />
